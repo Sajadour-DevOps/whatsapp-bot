@@ -7,7 +7,7 @@
 const GROUP_NAME = "Test Group"; // Target WhatsApp group name
 
 // --- Report Time ---
-const REPORT_TIME = "0 17 * * *"; // Cron expression: every day at 5:00 PM
+const REPORT_TIME = "52 15 * * *"; // Cron expression: every day at 5:00 PM
 
 // --- Recipients: phone numbers who will receive the report ---
 const RECIPIENTS = [
