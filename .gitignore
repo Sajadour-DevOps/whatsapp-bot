@@ -1,0 +1,13 @@
+# Node modules - dependency folder, no need to track
+node_modules/
+
+# WhatsApp session data - contains sensitive auth info
+.wwebjs_auth/
+.wwebjs_cache/
+
+# Environment variables - contains API keys
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
