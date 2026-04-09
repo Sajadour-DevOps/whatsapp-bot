@@ -1,11 +1,12 @@
 // ============================================
 // modules/reporter.js - Report Sender Module
 // Sends missing office report to recipients at 5PM
+// Also sends report to the group if enabled
 // Uses node-cron for scheduling
 // ============================================
 
 const cron = require('node-cron'); // Import cron scheduler for timed tasks
-const { RECIPIENTS, REPORT_TIME } = require('../config'); // Import recipients and report time from config.js
+const { RECIPIENTS, REPORT_TIME, GROUP_NAME, REPORT_GROUP_NAME, SEND_REPORT_TO_GROUP } = require('../config'); // Import settings from config.js
 const { getMissingOffices, getReportedOffices } = require('./tracker'); // Import tracker functions from tracker.js
 
 // Purpose: Builds the report message text
@@ -35,17 +36,35 @@ function buildReportMessage() {
     return message; // Return the complete report message
 }
 
-// Purpose: Sends the report message to all recipients privately
+// Purpose: Sends the report message to all recipients privately and optionally to group
 // Parameters: client - the WhatsApp client object from client.js
 async function sendReport(client) {
     const message = buildReportMessage(); // Build the report message (from reporter.js)
 
-    for (const recipient of RECIPIENTS) { // Loop through each recipient from config.js
+    // Send to private recipients from config.js
+    for (const recipient of RECIPIENTS) { // Loop through each recipient
         try {
-            await client.sendMessage(recipient, message); // Send message to recipient
+            await client.sendMessage(recipient, message); // Send message privately
             console.log(`✅ Report sent to: ${recipient}`); // Log successful send
         } catch (error) {
-            console.error(`❌ Failed to send to ${recipient}:`, error.message); // Log error if send fails
+            console.error(`❌ Failed to send to ${recipient}:`, error.message); // Log error
+        }
+    }
+
+    // Send to group if enabled in config.js
+    if (SEND_REPORT_TO_GROUP) { // Check if group report is enabled
+        try {
+            const chats = await client.getChats(); // Get all chats from WhatsApp
+            const group = chats.find(chat => chat.name === REPORT_GROUP_NAME); // Find report target group by name
+
+            if (group) { // Check if group was found
+                await group.sendMessage(message); // Send report to group
+                console.log(`✅ Report sent to group: ${GROUP_NAME}`); // Log success
+            } else {
+                console.error(`❌ Group not found: ${GROUP_NAME}`); // Log if group not found
+            }
+        } catch (error) {
+            console.error(`❌ Failed to send to group:`, error.message); // Log error
         }
     }
 }
@@ -65,7 +84,7 @@ function scheduleReport(client) {
 
 // Export functions for use in other modules
 module.exports = {
-    scheduleReport, // Exported: schedules daily 5PM report
-    sendReport,     // Exported: sends report immediately
+    scheduleReport,     // Exported: schedules daily 5PM report
+    sendReport,         // Exported: sends report immediately
     buildReportMessage, // Exported: builds report message text
 };

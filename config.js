@@ -1,123 +1,151 @@
 // ============================================
-// config.js - Central configuration file
+// config.js - Central Configuration File
 // All settings, mappings, and constants here
 // ============================================
 
-// --- WhatsApp Group ---
-const GROUP_NAME = "Test Group"; // Target WhatsApp group name
+// --- Admin number for conflict resolution ---
+const ADMIN_NUMBER = "8801XXXXXXXXX@c.us"; // Admin who decides message type conflicts
 
-// --- Report Time ---
-const REPORT_TIME = "52 15 * * *"; // Cron expression: every day at 5:00 PM
-
-// --- Recipients: phone numbers who will receive the report ---
-const RECIPIENTS = [
-    "8801761329168@c.us", // Recipient 1
-    "8801704108969@c.us", // Recipient 2
+// --- Message Types Configuration ---
+const MESSAGE_TYPES = [
+    {
+        type: "safety_drill",                          // Message type identifier
+        keywords: ["সেফটি ড্রিল", "নিরাপত্তা ড্রিল", "Safety Register", "দৈনিক নিরাপত্তা"], // Keywords to detect this type
+        sourceGroup: "NOA PBS Officers Group",         // Group to monitor for incoming messages
+        destinationGroups: ["NOA PBS Officers Group"], // Groups to send report to
+        destinationNumbers: [                          // Numbers to send report to privately
+            "8801XXXXXXXXX@c.us",
+            "8801XXXXXXXXX@c.us",
+        ],
+        trackLevel: "subOffice",                       // Track at sub-office level (43 offices)
+        reportTime: "0 17 * * *",                      // Cron: every day at 5PM
+        reminderTime: "0 16 * * *",                    // Cron: every day at 4PM (1 hour before)
+    },
+    {
+        type: "power_report",                          // Message type identifier
+        keywords: ["বন্ধ ফিডার", "বিদ্যুৎ বিহীন", "শাটডাউন", "ফিডারের সংখ্যা"], // Keywords to detect this type
+        sourceGroup: "NOA PBS Night Report Group",     // Group to monitor for incoming messages
+        destinationGroups: ["Managers Group"],         // Groups to send report to
+        destinationNumbers: [                          // Numbers to send report to privately
+            "8801XXXXXXXXX@c.us",
+        ],
+        trackLevel: "mainOffice",                      // Track at main office level (10 offices)
+        reportTime: "0 23 * * *",                      // Cron: every day at 11PM
+        reminderTime: "0 22 * * *",                    // Cron: every day at 10PM (1 hour before)
+    },
 ];
 
-// --- Office hierarchy: sub-office mapped to their parent office ---
-const OFFICE_MAP = {
-    // Sadar Daptar
-    "সদর দপ্তর": "সদর দপ্তর",
-    "কুতুবপুর": "সদর দপ্তর",
-    "আলাইয়ারপুর": "সদর দপ্তর",
-    "লন্ডন মার্কেট": "সদর দপ্তর",
-    "লন্ডন বাজার": "সদর দপ্তর",
-
-    // Chatkhil Zonal
-    "চাটখিল": "চাটখিল জোনাল অফিস",
-    "Chatkhil": "চাটখিল জোনাল অফিস",
-    "খিলপাড়া": "চাটখিল জোনাল অফিস",
-    "সাহাপুর": "চাটখিল জোনাল অফিস",
-    "শাহাপুর": "চাটখিল জোনাল অফিস",
-    "বদলকোট": "চাটখিল জোনাল অফিস",
-    "শোল্লা": "চাটখিল জোনাল অফিস",
-
-    // Sonaimuri Zonal
-    "সোনাইমুড়ী": "সোনাইমুড়ী জোনাল অফিস",
-    "সোনাইমুড়ি": "সোনাইমুড়ী জোনাল অফিস",
-    "Sonaimuri": "সোনাইমুড়ী জোনাল অফিস",
-    "আমিশাপাড়া": "সোনাইমুড়ী জোনাল অফিস",
-    "Amishapara": "সোনাইমুড়ী জোনাল অফিস",
-    "বাংলাবাজার": "সোনাইমুড়ী জোনাল অফিস",
-    "কাশিপুর": "সোনাইমুড়ী জোনাল অফিস",
-    "Kashipur": "সোনাইমুড়ী জোনাল অফিস",
-    "দেওটি": "সোনাইমুড়ী জোনাল অফিস",
-    "Dauti": "সোনাইমুড়ী জোনাল অফিস",
-
-    // Senbag Zonal
-    "সেনবাগ": "সেনবাগ জোনাল অফিস",
-    "Senbag": "সেনবাগ জোনাল অফিস",
-    "কানকিরহাট": "সেনবাগ জোনাল অফিস",
-    "ফকিরহাট": "সেনবাগ জোনাল অফিস",
-    "সেবারহাট": "সেনবাগ জোনাল অফিস",
-
-    // Companiganj Zonal
-    "কোম্পানীগঞ্জ": "কোম্পানীগঞ্জ জোনাল অফিস",
-    "Companiganj": "কোম্পানীগঞ্জ জোনাল অফিস",
-    "পেশকারহাট": "কোম্পানীগঞ্জ জোনাল অফিস",
-    "সিরাজপুর": "কোম্পানীগঞ্জ জোনাল অফিস",
-    "চর এলাহী": "কোম্পানীগঞ্জ জোনাল অফিস",
-    "উড়িরচর": "কোম্পানীগঞ্জ জোনাল অফিস",
-    "চৌধুরী বাজার": "কোম্পানীগঞ্জ জোনাল অফিস",
-
-    // Kabirhat Zonal
-    "কবিরহাট": "কবিরহাট জোনাল অফিস",
-    "Kabirhat": "কবিরহাট জোনাল অফিস",
-    "তাকিয়াবাজার": "কবিরহাট জোনাল অফিস",
-    "ধানসিঁড়ি": "কবিরহাট জোনাল অফিস",
-    "ফরাজিবাজার": "কবিরহাট জোনাল অফিস",
-
-    // Sonapur Zonal
-    "সোনাপুর": "সোনাপুর জোনাল অফিস",
-    "Sonapur": "সোনাপুর জোনাল অফিস",
-    "দিনমনিরহাট": "সোনাপুর জোনাল অফিস",
-    "দিনমনি": "সোনাপুর জোনাল অফিস",
-    "মান্নাননগর": "সোনাপুর জোনাল অফিস",
-    "বাঁধেরহাট": "সোনাপুর জোনাল অফিস",
-    "ওদারহাট": "সোনাপুর জোনাল অফিস",
-    "অন্ডারচর": "সোনাপুর জোনাল অফিস",
-    "আন্ডারচর": "সোনাপুর জোনাল অফিস",
-
-    // Subarnachar Zonal
-    "সুবর্ণচর": "সুবর্ণচর জোনাল অফিস",
-    "Subarnachar": "সুবর্ণচর জোনাল অফিস",
-    "ভূঁইয়ারহাট": "সুবর্ণচর জোনাল অফিস",
-    "আক্তারমিয়ারহাট": "সুবর্ণচর জোনাল অফিস",
-    "হাতিয়াবাজার": "সুবর্ণচর জোনাল অফিস",
-    "চর জব্বর": "সুবর্ণচর জোনাল অফিস",
-
-    // Aminbazar Zonal
-    "আমিনবাজার": "আমিনবাজার জোনাল অফিস",
-    "Aminbazar": "আমিনবাজার জোনাল অফিস",
-    "পদিপাড়া": "আমিনবাজার জোনাল অফিস",
-    "রাজগঞ্জ": "আমিনবাজার জোনাল অফিস",
-    "ছয়ানী": "আমিনবাজার জোনাল অফিস",
-
-    // Nayanpur Sub-Zonal
-    "নয়নপুর": "নয়নপুর সাব-জোনাল অফিস",
-    "Nayanpur": "নয়নপুর সাব-জোনাল অফিস",
+// --- Office hierarchy with contacts ---
+// contacts: main office contacts for reminders (always used regardless of trackLevel)
+const OFFICES = {
+    "সদর দপ্তর": {
+        contacts: ["8801XXXXXXXXX@c.us"],              // Main office contacts for reminders
+        subOffices: [
+            { name: "সদর দপ্তর অভিযোগ কেন্দ্র" },
+            { name: "কুতুবপুর অভিযোগ কেন্দ্র" },
+            { name: "আলাইয়ারপুর অভিযোগ কেন্দ্র" },
+            { name: "লন্ডন মার্কেট অভিযোগ কেন্দ্র" },
+        ]
+    },
+    "চাটখিল জোনাল অফিস": {
+        contacts: ["8801XXXXXXXXX@c.us"],              // Main office contacts for reminders
+        subOffices: [
+            { name: "চাটখিল অভিযোগ কেন্দ্র" },
+            { name: "খিলপাড়া অভিযোগ কেন্দ্র" },
+            { name: "সাহাপুর অভিযোগ কেন্দ্র" },
+            { name: "বদলকোট অভিযোগ কেন্দ্র" },
+            { name: "শোল্লা অভিযোগ কেন্দ্র" },
+        ]
+    },
+    "সোনাইমুড়ী জোনাল অফিস": {
+        contacts: ["8801XXXXXXXXX@c.us"],              // Main office contacts for reminders
+        subOffices: [
+            { name: "সোনাইমুড়ী অভিযোগ কেন্দ্র" },
+            { name: "আমিশাপাড়া এরিয়া অফিস" },
+            { name: "বাংলাবাজার অভিযোগ কেন্দ্র" },
+            { name: "কাশিপুর অভিযোগ কেন্দ্র" },
+            { name: "দেওটি অভিযোগ কেন্দ্র" },
+        ]
+    },
+    "সেনবাগ জোনাল অফিস": {
+        contacts: ["8801XXXXXXXXX@c.us"],              // Main office contacts for reminders
+        subOffices: [
+            { name: "সেনবাগ অভিযোগ কেন্দ্র" },
+            { name: "কানকিরহাট এরিয়া অফিস" },
+            { name: "ফকিরহাট অভিযোগ কেন্দ্র" },
+            { name: "সেবারহাট অভিযোগ কেন্দ্র" },
+        ]
+    },
+    "কোম্পানীগঞ্জ জোনাল অফিস": {
+        contacts: ["8801XXXXXXXXX@c.us"],              // Main office contacts for reminders
+        subOffices: [
+            { name: "কোম্পানীগঞ্জ অভিযোগ কেন্দ্র" },
+            { name: "পেশকারহাট অভিযোগ কেন্দ্র" },
+            { name: "সিরাজপুর অভিযোগ কেন্দ্র" },
+            { name: "চর এলাহী অভিযোগ কেন্দ্র" },
+            { name: "উড়িরচর অভিযোগ কেন্দ্র" },
+            { name: "চৌধুরী বাজার অভিযোগ কেন্দ্র" },
+        ]
+    },
+    "কবিরহাট জোনাল অফিস": {
+        contacts: ["8801XXXXXXXXX@c.us"],              // Main office contacts for reminders
+        subOffices: [
+            { name: "কবিরহাট অভিযোগ কেন্দ্র" },
+            { name: "তাকিয়াবাজার অভিযোগ কেন্দ্র" },
+            { name: "ধানসিঁড়ি অভিযোগ কেন্দ্র" },
+            { name: "ফরাজিবাজার অভিযোগ কেন্দ্র" },
+        ]
+    },
+    "সোনাপুর জোনাল অফিস": {
+        contacts: ["8801XXXXXXXXX@c.us"],              // Main office contacts for reminders
+        subOffices: [
+            { name: "সোনাপুর অভিযোগ কেন্দ্র" },
+            { name: "দিনমনিরহাট অভিযোগ কেন্দ্র" },
+            { name: "মান্নাননগর অভিযোগ কেন্দ্র" },
+            { name: "বাঁধেরহাট অভিযোগ কেন্দ্র" },
+            { name: "ওদারহাট অভিযোগ কেন্দ্র" },
+            { name: "অন্ডারচর অভিযোগ কেন্দ্র" },
+        ]
+    },
+    "সুবর্ণচর জোনাল অফিস": {
+        contacts: ["8801XXXXXXXXX@c.us"],              // Main office contacts for reminders
+        subOffices: [
+            { name: "সুবর্ণচর অভিযোগ কেন্দ্র" },
+            { name: "ভূঁইয়ারহাট অভিযোগ কেন্দ্র" },
+            { name: "আক্তারমিয়ারহাট অভিযোগ কেন্দ্র" },
+            { name: "হাতিয়াবাজার অভিযোগ কেন্দ্র" },
+        ]
+    },
+    "আমিনবাজার জোনাল অফিস": {
+        contacts: ["8801XXXXXXXXX@c.us"],              // Main office contacts for reminders
+        subOffices: [
+            { name: "আমিনবাজার অভিযোগ কেন্দ্র" },
+            { name: "পদিপাড়া অভিযোগ কেন্দ্র" },
+            { name: "রাজগঞ্জ অভিযোগ কেন্দ্র" },
+            { name: "ছয়ানী অভিযোগ কেন্দ্র" },
+        ]
+    },
+    "নয়নপুর সাব-জোনাল অফিস": {
+        contacts: ["8801XXXXXXXXX@c.us"],              // Main office contacts for reminders
+        subOffices: [
+            { name: "নয়নপুর অভিযোগ কেন্দ্র" },
+        ]
+    },
 };
 
-// --- All main offices list (for checking who hasn't reported) ---
-const ALL_OFFICES = [
-    "সদর দপ্তর",
-    "চাটখিল জোনাল অফিস",
-    "সোনাইমুড়ী জোনাল অফিস",
-    "সেনবাগ জোনাল অফিস",
-    "কোম্পানীগঞ্জ জোনাল অফিস",
-    "কবিরহাট জোনাল অফিস",
-    "সোনাপুর জোনাল অফিস",
-    "সুবর্ণচর জোনাল অফিস",
-    "আমিনবাজার জোনাল অফিস",
-    "নয়নপুর সাব-জোনাল অফিস",
-];
+// --- Flat list of all main offices for easy lookup ---
+const ALL_MAIN_OFFICES = Object.keys(OFFICES); // Extract main office names
 
-// --- Export all settings for use in other modules ---
+// --- Flat list of all sub-offices for easy lookup ---
+const ALL_SUB_OFFICES = Object.values(OFFICES)  // Get all zone objects
+    .flatMap(zone => zone.subOffices)            // Flatten to single array
+    .map(office => office.name);                 // Extract just the names
+
+// --- Export all settings ---
 module.exports = {
-    GROUP_NAME,   // Exported: group name
-    REPORT_TIME,  // Exported: cron schedule
-    RECIPIENTS,   // Exported: list of report recipients
-    OFFICE_MAP,   // Exported: keyword to office mapping
-    ALL_OFFICES,  // Exported: list of all main offices
+    ADMIN_NUMBER,       // Exported: admin number for conflict resolution
+    MESSAGE_TYPES,      // Exported: all message type configurations
+    OFFICES,            // Exported: full office hierarchy with contacts
+    ALL_MAIN_OFFICES,   // Exported: flat list of all main office names
+    ALL_SUB_OFFICES,    // Exported: flat list of all sub-office names
 };
