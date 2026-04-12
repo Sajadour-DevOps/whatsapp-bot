@@ -1,87 +1,119 @@
 // ============================================
-// modules/detector.js - Office Detector Module
-// Detects which sub-office a message belongs to
-// using keyword matching from config.js
+// modules/detector.js - Message Type & Office Detector Module
+// Detects message type using keywords from config.js
+// Detects which office sent the message
+// Handles conflict resolution via admin
 // ============================================
 
-const { OFFICE_MAP, ALL_OFFICES } = require('../config'); // Import office mapping and office list from config.js
+const { MESSAGE_TYPES, OFFICES, ALL_MAIN_OFFICES, ALL_SUB_OFFICES, ADMIN_NUMBER } = require('../config'); // Import settings from config.js
 
-// Purpose: Searches message text for any known sub-office keyword
-// Parameters: text - the message string to search through
-// Returns: sub-office name (string) or null if not found
-function detectOfficeFromText(text) {
-    if (!text) return null; // Return null if text is empty or undefined
+// --- In-memory store for pending admin decisions ---
+const pendingDecisions = {}; // Stores messages waiting for admin decision
 
-    for (const office of ALL_OFFICES) { // Loop through each sub-office in the full list
-        // Extract short keyword from sub-office name (remove "অভিযোগ কেন্দ্র" and "এরিয়া অফিস")
-        const keyword = office
-            .replace('অভিযোগ কেন্দ্র', '') // Remove "অভিযোগ কেন্দ্র" suffix
-            .replace('এরিয়া অফিস', '')     // Remove "এরিয়া অফিস" suffix
+// Purpose: Detects message type based on keywords
+// Parameters: text - message text to search through
+// Returns: array of matching MESSAGE_TYPES objects, or empty array
+function detectMessageTypes(text) {
+    if (!text) return []; // Return empty if no text
+
+    return MESSAGE_TYPES.filter(msgType => // Filter message types by keyword match
+        msgType.keywords.some(keyword => text.includes(keyword)) // Check if any keyword matches
+    );
+}
+
+// Purpose: Sends conflict message to admin for decision
+// Parameters: client - WhatsApp client, messageId - unique message id, matchedTypes - conflicting types, originalMessage - the message object
+async function askAdminForDecision(client, messageId, matchedTypes, originalMessage) {
+    const options = matchedTypes // Build options list for admin
+        .map((t, i) => `${i + 1}️⃣ ${t.type}`) // Format each type with number
+        .join('\n'); // Join with newline
+
+    const adminMessage = `⚠️ *Message Type Conflict Detected*\n\nনিচের message-এর type কোনটা?\n\n${options}\n\nশুধু নম্বর লিখুন (1, 2...)`; // Build admin message
+
+    await client.sendMessage(ADMIN_NUMBER, adminMessage); // Send conflict message to admin (from config.js)
+
+    pendingDecisions[ADMIN_NUMBER] = { // Store pending decision
+        messageId,       // Store message id
+        matchedTypes,    // Store conflicting types
+        originalMessage, // Store original message for later processing
+    };
+
+    console.log(`⚠️ Conflict sent to admin for decision`); // Log conflict
+}
+
+// Purpose: Checks if admin replied to a pending decision
+// Parameters: message - incoming message object
+// Returns: pending decision object or null
+function checkAdminReply(message) {
+    if (message.from !== ADMIN_NUMBER) return null; // Ignore if not from admin (from config.js)
+    if (!pendingDecisions[ADMIN_NUMBER]) return null; // Ignore if no pending decision
+
+    const reply = message.body.trim(); // Get admin reply
+    const decision = pendingDecisions[ADMIN_NUMBER]; // Get pending decision
+    const index = parseInt(reply) - 1; // Convert reply to array index
+
+    if (isNaN(index) || index < 0 || index >= decision.matchedTypes.length) return null; // Ignore invalid reply
+
+    const resolvedType = decision.matchedTypes[index]; // Get resolved message type
+    delete pendingDecisions[ADMIN_NUMBER]; // Clear pending decision
+
+    console.log(`✅ Admin resolved conflict: ${resolvedType.type}`); // Log resolution
+
+    return { resolvedType, originalMessage: decision.originalMessage }; // Return resolved type and original message
+}
+
+// Purpose: Detects office name from text based on trackLevel
+// Parameters: text - message text, trackLevel - "subOffice" or "mainOffice"
+// Returns: matched office name or null
+function detectOfficeFromText(text, trackLevel) {
+    if (!text) return null; // Return null if no text
+
+    const officeList = trackLevel === 'subOffice' ? ALL_SUB_OFFICES : ALL_MAIN_OFFICES; // Choose list based on trackLevel (from config.js)
+
+    for (const office of officeList) { // Loop through each office
+        const keyword = office // Extract keyword from office name
+            .replace('অভিযোগ কেন্দ্র', '') // Remove suffix
+            .replace('জোনাল অফিস', '')      // Remove suffix
+            .replace('এরিয়া অফিস', '')      // Remove suffix
+            .replace('সাব-জোনাল অফিস', '')  // Remove suffix
+            .trim();                          // Remove extra spaces
+
+        if (text.includes(keyword)) return office; // Return office if keyword found
+    }
+
+    return null; // Return null if no match
+}
+
+// Purpose: Detects "সকল" bulk report pattern
+// Parameters: text - message text, trackLevel - "subOffice" or "mainOffice"
+// Returns: array of office names under that zone, or null
+function detectBulkReport(text, trackLevel) {
+    if (!text) return null; // Return null if no text
+    if (!text.includes('সকল')) return null; // Return null if "সকল" not found
+
+    for (const [mainOffice, data] of Object.entries(OFFICES)) { // Loop through each main office (from config.js)
+        const keyword = mainOffice // Extract keyword from main office name
+            .replace('জোনাল অফিস', '')     // Remove suffix
+            .replace('সাব-জোনাল অফিস', '') // Remove suffix
             .trim();                         // Remove extra spaces
 
-        if (text.includes(keyword)) { // Check if message contains the keyword
-            return office; // Return the full sub-office name
+        if (text.includes(keyword)) { // Check if message contains main office keyword
+            if (trackLevel === 'subOffice') { // Return sub-offices if trackLevel is subOffice
+                return data.subOffices.map(s => s.name); // Return all sub-office names
+            } else {
+                return [mainOffice]; // Return main office name
+            }
         }
     }
 
-    return null; // Return null if no keyword matched
-}
-
-// Purpose: Checks if message contains "সকল" (all) keyword
-// meaning all sub-offices of that zone reported together
-// Parameters: text - the message string to search through
-// Returns: array of sub-office names under that zone, or null
-function detectAllOffices(text) {
-    if (!text) return null; // Return null if text is empty
-    if (!text.includes('সকল')) return null; // Return null if "সকল" not in message
-
-    // Find which main zone is mentioned
-    const zoneKeywords = Object.keys(OFFICE_MAP); // Get all zone keywords from config.js
-
-    for (const keyword of zoneKeywords) { // Loop through each zone keyword
-        if (text.includes(keyword)) { // Check if message contains zone keyword
-            const mainOffice = OFFICE_MAP[keyword]; // Get main office name (from config.js)
-
-            // Find all sub-offices under this main office
-            const subOffices = ALL_OFFICES.filter(office => {
-                const shortKey = office
-                    .replace('অভিযোগ কেন্দ্র', '') // Remove suffix
-                    .replace('এরিয়া অফিস', '')     // Remove suffix
-                    .trim();                         // Remove spaces
-                return OFFICE_MAP[shortKey] === mainOffice; // Match sub-office to main office
-            });
-
-            return subOffices.length > 0 ? subOffices : null; // Return sub-offices or null
-        }
-    }
-
-    return null; // Return null if no zone keyword found
-}
-
-// Purpose: Main detection function - combines text and AI result
-// Parameters: text - message text, aiResult - office name from Gemini AI
-// Returns: sub-office name (string), array of names, or null if not detected
-function detectOffice(text, aiResult) {
-    // First try: check AI result from imageAnalyzer.js
-    if (aiResult) {
-        const fromAI = detectOfficeFromText(aiResult); // Run keyword match on AI result (from imageAnalyzer.js)
-        if (fromAI) return fromAI; // Return if AI result matched
-    }
-
-    // Second try: check for "সকল" bulk report pattern
-    const fromAll = detectAllOffices(text); // Check for bulk report pattern (from detector.js)
-    if (fromAll) return fromAll; // Return array of sub-offices if bulk pattern matched
-
-    // Third try: check message text directly
-    const fromText = detectOfficeFromText(text); // Run keyword match on raw message text
-    if (fromText) return fromText; // Return if text matched
-
-    return null; // Return null if nothing matched
+    return null; // Return null if no match
 }
 
 // Export all functions for use in other modules
 module.exports = {
-    detectOffice,          // Exported: main detection function
-    detectOfficeFromText,  // Exported: keyword matching from text
-    detectAllOffices,      // Exported: bulk report detection
+    detectMessageTypes,  // Exported: detects message type by keyword
+    askAdminForDecision, // Exported: sends conflict to admin
+    checkAdminReply,     // Exported: checks admin reply for conflict resolution
+    detectOfficeFromText, // Exported: detects office from text
+    detectBulkReport,    // Exported: detects bulk "সকল" report
 };
