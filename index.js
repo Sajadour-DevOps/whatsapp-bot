@@ -16,7 +16,16 @@ const { MESSAGE_TYPES, ADMIN_NUMBER } = require('./config'); // Import settings 
 const client = createClient(); // Create WhatsApp client (from client.js)
 
 onQR(client); // Register QR code handler (from client.js)
-onReady(client); // Register ready event handler (from client.js)
+
+client.on('ready', () => { // Fire when WhatsApp is connected
+    console.log('✅ WhatsApp connected successfully!'); // Log success
+    scheduleReset(); // Schedule midnight tracker reset (from tracker.js)
+    scheduleAll(client); // Schedule all reports and reminders (from reporter.js)
+});
+
+startClient(client); // Start WhatsApp connection (from client.js)
+
+console.log('🚀 WhatsApp bot starting...'); // Log bot startup
 
 // Purpose: Logs all incoming group messages for monitoring
 client.on('message_create', (message) => { // Listen for ALL messages
@@ -105,10 +114,3 @@ async function processMessage(message, msgType) {
         console.log(`⚠️ Could not detect office from message`); // Log if not detected
     }
 }
-
-scheduleReset(); // Schedule midnight tracker reset (from tracker.js)
-scheduleAll(client); // Schedule all reports and reminders (from reporter.js)
-
-startClient(client); // Start WhatsApp connection (from client.js)
-
-console.log('🚀 WhatsApp bot starting...'); // Log bot startup

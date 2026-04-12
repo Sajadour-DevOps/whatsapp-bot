@@ -4,34 +4,33 @@
 // ============================================
 
 // --- Admin number for conflict resolution ---
-const ADMIN_NUMBER = "8801XXXXXXXXX@c.us"; // Admin who decides message type conflicts
+const ADMIN_NUMBER = "8801761329168@c.us"; // Admin who decides message type conflicts
 
 // --- Message Types Configuration ---
 const MESSAGE_TYPES = [
     {
         type: "safety_drill",                          // Message type identifier
         keywords: ["সেফটি ড্রিল", "নিরাপত্তা ড্রিল", "Safety Register", "দৈনিক নিরাপত্তা"], // Keywords to detect this type
-        sourceGroup: "NOA PBS Officers Group",         // Group to monitor for incoming messages
-        destinationGroups: ["NOA PBS Officers Group"], // Groups to send report to
+        sourceGroup: "Test Group",         // Group to monitor for incoming messages
+        destinationGroups: ["Test Group"], // Groups to send report to
         destinationNumbers: [                          // Numbers to send report to privately
-            "8801XXXXXXXXX@c.us",
-            "8801XXXXXXXXX@c.us",
+            "8801704106559@c.us"
         ],
         trackLevel: "subOffice",                       // Track at sub-office level (43 offices)
-        reportTime: "0 17 * * *",                      // Cron: every day at 5PM
-        reminderTime: "0 16 * * *",                    // Cron: every day at 4PM (1 hour before)
+        reportTime: "29 13 * * *",                      // Cron: every day at 5PM
+        reminderTime: "28 13 * * *",                    // Cron: every day at 4PM (1 hour before)
     },
     {
         type: "power_report",                          // Message type identifier
-        keywords: ["বন্ধ ফিডার", "বিদ্যুৎ বিহীন", "শাটডাউন", "ফিডারের সংখ্যা"], // Keywords to detect this type
-        sourceGroup: "NOA PBS Night Report Group",     // Group to monitor for incoming messages
-        destinationGroups: ["Managers Group"],         // Groups to send report to
+        keywords: ["বিদ্যুৎ বিহীন লাইন ও গ্রাহকের তথ্য"], // Keywords to detect this type
+        sourceGroup: "Test Group",     // Group to monitor for incoming messages
+        destinationGroups: ["Test Group"],         // Groups to send report to
         destinationNumbers: [                          // Numbers to send report to privately
-            "8801XXXXXXXXX@c.us",
+            "8801704106559@c.us",
         ],
         trackLevel: "mainOffice",                      // Track at main office level (10 offices)
-        reportTime: "0 23 * * *",                      // Cron: every day at 11PM
-        reminderTime: "0 22 * * *",                    // Cron: every day at 10PM (1 hour before)
+        reportTime: "29 13 * * *",                      // Cron: every day at 11PM
+        reminderTime: "28 13 * * *",                    // Cron: every day at 10PM (1 hour before)
     },
 ];
 
@@ -39,7 +38,7 @@ const MESSAGE_TYPES = [
 // contacts: main office contacts for reminders (always used regardless of trackLevel)
 const OFFICES = {
     "সদর দপ্তর": {
-        contacts: ["8801XXXXXXXXX@c.us"],              // Main office contacts for reminders
+        contacts: ["8801704108969@c.us"],              // Main office contacts for reminders
         subOffices: [
             { name: "সদর দপ্তর অভিযোগ কেন্দ্র" },
             { name: "কুতুবপুর অভিযোগ কেন্দ্র" },
@@ -48,7 +47,7 @@ const OFFICES = {
         ]
     },
     "চাটখিল জোনাল অফিস": {
-        contacts: ["8801XXXXXXXXX@c.us"],              // Main office contacts for reminders
+        contacts: ["8801704108969@c.us"],              // Main office contacts for reminders
         subOffices: [
             { name: "চাটখিল অভিযোগ কেন্দ্র" },
             { name: "খিলপাড়া অভিযোগ কেন্দ্র" },
@@ -58,7 +57,7 @@ const OFFICES = {
         ]
     },
     "সোনাইমুড়ী জোনাল অফিস": {
-        contacts: ["8801XXXXXXXXX@c.us"],              // Main office contacts for reminders
+        contacts: ["8801704108969@c.us"],              // Main office contacts for reminders
         subOffices: [
             { name: "সোনাইমুড়ী অভিযোগ কেন্দ্র" },
             { name: "আমিশাপাড়া এরিয়া অফিস" },
@@ -68,7 +67,7 @@ const OFFICES = {
         ]
     },
     "সেনবাগ জোনাল অফিস": {
-        contacts: ["8801XXXXXXXXX@c.us"],              // Main office contacts for reminders
+        contacts: ["8801704108969@c.us"],              // Main office contacts for reminders
         subOffices: [
             { name: "সেনবাগ অভিযোগ কেন্দ্র" },
             { name: "কানকিরহাট এরিয়া অফিস" },
@@ -77,7 +76,7 @@ const OFFICES = {
         ]
     },
     "কোম্পানীগঞ্জ জোনাল অফিস": {
-        contacts: ["8801XXXXXXXXX@c.us"],              // Main office contacts for reminders
+        contacts: ["8801704108969@c.us"],              // Main office contacts for reminders
         subOffices: [
             { name: "কোম্পানীগঞ্জ অভিযোগ কেন্দ্র" },
             { name: "পেশকারহাট অভিযোগ কেন্দ্র" },
@@ -88,7 +87,7 @@ const OFFICES = {
         ]
     },
     "কবিরহাট জোনাল অফিস": {
-        contacts: ["8801XXXXXXXXX@c.us"],              // Main office contacts for reminders
+        contacts: ["8801704108969@c.us"],              // Main office contacts for reminders
         subOffices: [
             { name: "কবিরহাট অভিযোগ কেন্দ্র" },
             { name: "তাকিয়াবাজার অভিযোগ কেন্দ্র" },
@@ -97,7 +96,7 @@ const OFFICES = {
         ]
     },
     "সোনাপুর জোনাল অফিস": {
-        contacts: ["8801XXXXXXXXX@c.us"],              // Main office contacts for reminders
+        contacts: ["8801704108969@c.us"],              // Main office contacts for reminders
         subOffices: [
             { name: "সোনাপুর অভিযোগ কেন্দ্র" },
             { name: "দিনমনিরহাট অভিযোগ কেন্দ্র" },
@@ -108,7 +107,7 @@ const OFFICES = {
         ]
     },
     "সুবর্ণচর জোনাল অফিস": {
-        contacts: ["8801XXXXXXXXX@c.us"],              // Main office contacts for reminders
+        contacts: ["8801704108969@c.us"],              // Main office contacts for reminders
         subOffices: [
             { name: "সুবর্ণচর অভিযোগ কেন্দ্র" },
             { name: "ভূঁইয়ারহাট অভিযোগ কেন্দ্র" },
@@ -117,7 +116,7 @@ const OFFICES = {
         ]
     },
     "আমিনবাজার জোনাল অফিস": {
-        contacts: ["8801XXXXXXXXX@c.us"],              // Main office contacts for reminders
+        contacts: ["8801704108969@c.us"],              // Main office contacts for reminders
         subOffices: [
             { name: "আমিনবাজার অভিযোগ কেন্দ্র" },
             { name: "পদিপাড়া অভিযোগ কেন্দ্র" },
@@ -126,7 +125,7 @@ const OFFICES = {
         ]
     },
     "নয়নপুর সাব-জোনাল অফিস": {
-        contacts: ["8801XXXXXXXXX@c.us"],              // Main office contacts for reminders
+        contacts: ["8801704108969@c.us"],              // Main office contacts for reminders
         subOffices: [
             { name: "নয়নপুর অভিযোগ কেন্দ্র" },
         ]

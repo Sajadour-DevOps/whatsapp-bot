@@ -97,6 +97,7 @@ async function sendReminder(client, msgType) {
     // Send reminder to main office contacts privately
     for (const mainOffice of mainOfficesToRemind) { // Loop through main offices to remind
         const contacts = getMainOfficeContacts(mainOffice); // Get contacts (from tracker.js)
+        console.log(`🔍 ${mainOffice} contacts: ${JSON.stringify(contacts)}`); // Debug: log contacts
         for (const contact of contacts) { // Loop through each contact
             try {
                 await client.sendMessage(contact, reminderMessage); // Send reminder privately
@@ -124,6 +125,10 @@ async function sendReminder(client, msgType) {
 // Parameters: client - WhatsApp client object from client.js
 function scheduleAll(client) {
     MESSAGE_TYPES.forEach(msgType => { // Loop through each message type (from config.js)
+
+        // // Test: fire immediately once
+        // console.log(`🔔 Test firing for: ${msgType.type}`); // Log test fire
+        // sendReminder(client, msgType); // Test reminder immediately (from reporter.js)
 
         // Schedule report
         cron.schedule(msgType.reportTime, () => { // Schedule using cron expression
